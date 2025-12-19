@@ -10,6 +10,10 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <meta
+      name="firebase-config"
+      content='{"apiKey":"YOUR_API_KEY","authDomain":"YOUR_AUTH_DOMAIN","projectId":"YOUR_PROJECT_ID","appId":"YOUR_APP_ID"}'
+    />
     <link rel="stylesheet" href="styles/base.css" />
     <link rel="stylesheet" href="styles/ide.css" />
   </head>
@@ -58,14 +62,33 @@
           </p>
         </section>
 
-        <section class="panel output-panel">
-          <div class="output-header">
-            <h2>Output</h2>
-            <span id="outputStatus" class="status-pill">Idle</span>
-          </div>
-          <pre id="outputText">Run your code to see output here.</pre>
-          <p id="feedbackMessage">Feedback will appear right after each run.</p>
-        </section>
+        <div class="feedback-stack">
+          <section class="panel output-panel">
+            <div class="output-header">
+              <h2>Output</h2>
+              <span id="outputStatus" class="status-pill">Idle</span>
+            </div>
+            <pre id="outputText">Run your code to see output here.</pre>
+            <p id="feedbackMessage">Feedback will appear right after each run.</p>
+          </section>
+
+          <section class="panel mentor-panel">
+            <div class="mentor-header">
+              <div>
+                <p class="tag">AI mentor</p>
+                <h2>Hint request</h2>
+              </div>
+              <button class="ghost-btn" id="hintButton">Ask for hint</button>
+            </div>
+            <article class="mentor-card" id="mentorCard">
+              <p class="mentor-copy" id="mentorCopy">
+                Run your code first, then request a hint if you still feel stuck. Gemini will give you
+                gentle nudges—not full solutions.
+              </p>
+              <span class="mentor-tone" id="mentorTone">Status: idle</span>
+            </article>
+          </section>
+        </div>
       </div>
     </main>
 
