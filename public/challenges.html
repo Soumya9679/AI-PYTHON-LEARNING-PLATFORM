@@ -1,97 +1,108 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PulsePy Challenges</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/challenges.css" />
-  </head>
-  <body>
-    <div class="grid-bg" aria-hidden="true"></div>
-    <header class="page-header">
-      <a class="logo" href="index.html">PulsePy</a>
-      <div class="header-copy">
-        <p class="tag">Challenge galaxy</p>
-        <h1>Single-concept quests with Gen-Z flair.</h1>
-        <p>Pick a vibe, launch a mission, rack XP. Hints upgrade as you persist.</p>
-      </div>
-    </header>
+<head>
+  <meta charset="UTF-8">
+  <title>Python IDE Challenges</title>
+  <link rel="stylesheet" href="styles/challenges.css">
+</head>
+<body>
 
-    <main>
-      <section class="tracks">
-        <article class="track-card active">
-          <p>World 01</p>
-          <h3>Print Party</h3>
-          <span>8 quests • 450 XP</span>
-        </article>
-        <article class="track-card">
-          <p>World 02</p>
-          <h3>Variable Runway</h3>
-          <span>10 quests • 620 XP</span>
-        </article>
-        <article class="track-card">
-          <p>World 03</p>
-          <h3>Loop Galaxy</h3>
-          <span>11 quests • 720 XP</span>
-        </article>
-      </section>
+  <div class="container">
+    <h1>🐍 Python Coding Challenges</h1>
 
-      <section class="challenge-feed">
-        <article>
-          <p class="tag">Quest 01</p>
-          <h2>Shout out your favorite emoji.</h2>
-          <p>Use <code>print</code> twice, second message must include "+".</p>
-          <button class="solid-btn">Launch quest</button>
-        </article>
-        <article>
-          <p class="tag">Quest 02</p>
-          <h2>Debug Byte's playlist.</h2>
-          <p>Store two songs in variables and print the mix like a DJ.</p>
-          <button class="outline-btn">Preview</button>
-        </article>
-        <article>
-          <p class="tag">Quest 03</p>
-          <h2>Neon loop handshake.</h2>
-          <p>Use a for-loop to greet 5 club members by name.</p>
-          <button class="outline-btn">Preview</button>
-        </article>
-      </section>
+    <!-- Question 1 -->
+    <div class="card">
+      <h3>1. Even or Odd</h3>
+      <p>Check whether a number is even or odd.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(1)">Submit</button>
+      <span id="msg1"></span>
+    </div>
 
-      <section class="hint-lab">
-        <div>
-          <p class="tag">Hint tiers</p>
-          <h3>Emoji nudge → Pseudocode → Strategy drop.</h3>
-        </div>
-        <div class="hint-stack">
-          <article>
-            <h4>Tier 1 · Emoji nudge</h4>
-            <p>"Try string glue magic ➕"</p>
-          </article>
-          <article>
-            <h4>Tier 2 · Pattern reveal</h4>
-            <p>"You need two <code>print</code> calls. Second combines text + emoji."</p>
-          </article>
-          <article>
-            <h4>Tier 3 · Strategy drop</h4>
-            <p>
-              "Store emoji to a variable, then print sentence + variable to avoid typos."
-            </p>
-          </article>
-        </div>
-      </section>
-    </main>
+    <!-- Question 2 -->
+    <div class="card">
+      <h3>2. Prime Number</h3>
+      <p>Check whether a number is prime.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(2)">Submit</button>
+      <span id="msg2"></span>
+    </div>
 
-    <footer>
-      <a href="index.html">Back to dashboard</a>
-    </footer>
+    <!-- Question 3 -->
+    <div class="card">
+      <h3>3. Factorial</h3>
+      <p>Find factorial of a number.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(3)">Submit</button>
+      <span id="msg3"></span>
+    </div>
 
-    <script src="scripts/challenges.js" type="module"></script>
-  </body>
+    <!-- Question 4 -->
+    <div class="card">
+      <h3>4. Fibonacci Series</h3>
+      <p>Print Fibonacci series up to n terms.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(4)">Submit</button>
+      <span id="msg4"></span>
+    </div>
+
+    <!-- Question 5 -->
+    <div class="card">
+      <h3>5. Reverse a String</h3>
+      <p>Reverse a given string.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(5)">Submit</button>
+      <span id="msg5"></span>
+    </div>
+
+    <!-- Question 6 -->
+    <div class="card">
+      <h3>6. Palindrome</h3>
+      <p>Check whether a string is palindrome.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(6)">Submit</button>
+      <span id="msg6"></span>
+    </div>
+
+    <!-- Question 7 -->
+    <div class="card">
+      <h3>7. Sum of Digits</h3>
+      <p>Find sum of digits of a number.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(7)">Submit</button>
+      <span id="msg7"></span>
+    </div>
+
+    <!-- Question 8 -->
+    <div class="card">
+      <h3>8. Largest in List</h3>
+      <p>Find largest element in a list.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(8)">Submit</button>
+      <span id="msg8"></span>
+    </div>
+
+    <!-- Question 9 -->
+    <div class="card">
+      <h3>9. Count Vowels</h3>
+      <p>Count vowels in a string.</p>
+      <textarea placeholder="Write Python code here..."></textarea>
+      <button onclick="submitCode(9)">Submit</button>
+      <span id="msg9"></span>
+    </div>
+
+    <!-- Question 10 -->
+    <div class="card">
+      <h3>10. Armstrong Number</h3>
+      <p>Check whether a number is Armstrong.</p>
+      <textarea placeholder="Write Python code here...\"></textarea>
+      <button onclick="submitCode(10)">Submit</button>
+      <span id="msg10"></span>
+    </div>
+
+  </div>
+
+  <script src="scripts/challenges.js"></script>
+</body>
 </html>
