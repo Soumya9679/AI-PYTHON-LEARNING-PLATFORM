@@ -1,27 +1,38 @@
-const loginBtn = document.getElementById("loginBtn");
-const signupBtn = document.getElementById("signupBtn");
-const gradient = document.querySelector(".cosmic-gradient");
+let car = document.getElementById("car");
+let position = 0;
+let correctAnswer = "";
 
-if (loginBtn)
-  loginBtn.addEventListener("click", () => {
-    window.location.href = "login.html";
-  });
-
-if (signupBtn)
-  signupBtn.addEventListener("click", () => {
-    window.location.href = "signup.html";
-  });
-
-let angle = 0;
-function animateGradient() {
-  angle += 0.0025;
-  const x = 50 + Math.sin(angle) * 30;
-  const y = 50 + Math.cos(angle) * 30;
-  gradient.style.background = `radial-gradient(circle at ${x}% ${y}%, rgba(255, 122, 195, 0.25), transparent 45%),
-    radial-gradient(circle at ${100 - x}% ${100 - y}%, rgba(108, 99, 255, 0.25), transparent 50%)`;
-  requestAnimationFrame(animateGradient);
+function loadQuestion() {
+    fetch("/question")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("question").innerText = data.q;
+            correctAnswer = data.a.toLowerCase();
+        });
 }
 
-if (gradient) {
-  animateGradient();
+function checkAnswer() {
+    let userAnswer = document.getElementById("answer").value.toLowerCase();
+    let status = document.getElementById("status");
+
+    if (userAnswer === correctAnswer) {
+        position += 50;
+        status.innerText = "✅ Correct! Car speeds up!";
+    } else {
+        position -= 20;
+        if (position < 0) position = 0;
+        status.innerText = "❌ Wrong! Car slows down!";
+    }
+
+    car.style.left = position + "px";
+    document.getElementById("answer").value = "";
+
+    if (position >= 600) {
+        status.innerText = "🏁 YOU WIN THE RACE!";
+    } else {
+        loadQuestion();
+    }
 }
+
+loadQuestion();
+

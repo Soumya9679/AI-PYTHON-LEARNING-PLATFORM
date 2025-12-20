@@ -1,72 +1,59 @@
-.game-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  padding: 1rem 0;
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-.xp-ring {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
-  align-items: center;
+.game-container {
+    background: #111;
+    padding: 25px;
+    border-radius: 12px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 0 15px #00ffcc;
+}
+h1 {
+    color: #00ffcc;
 }
 
-.ring {
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  border: 6px solid transparent;
-  background: conic-gradient(var(--accent) 0% 60%, rgba(255, 255, 255, 0.08) 60%);
-  display: grid;
-  place-items: center;
-  font-size: 1.3rem;
-  animation: pulse 4s ease-in-out infinite;
+.status {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
+.question-box {
+    background: #222;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
-.game-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+.options button {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #00ffcc;
+    font-size: 15px;
+    cursor: pointer;
 }
 
-.game-cards article {
-  padding: 1.4rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--grid);
+.options button:hover {
+    background: #00ccaa;
 }
 
-.mentor-mode {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2rem;
-  align-items: center;
-}
-
-.style-switcher {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.style-switcher button {
-  width: fit-content;
-}
-
-#toneOutput {
-  color: var(--muted);
+.next-btn {
+    margin-top: 10px;
+    padding: 8px 15px;
+    border: none;
+    background: orange;
+    border-radius: 6px;
+    cursor: pointer;
 }

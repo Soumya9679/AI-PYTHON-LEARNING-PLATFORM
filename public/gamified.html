@@ -1,79 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PulsePy Game Lab</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/gamified.css" />
-  </head>
-  <body>
-    <header class="game-hero">
-      <a class="logo" href="index.html">PulsePy</a>
-      <div>
-        <p class="tag">Game Lab</p>
-        <h1>Learning loops meet arcade loops.</h1>
-        <p>
-          Unlock avatar skins, earn XP combos, and jump into co-op debugging minigames.
-        </p>
-      </div>
-    </header>
+<head>
+    <meta charset="UTF-8">
+    <title>Python Quest - Bug Hunter</title>
+    <link rel="stylesheet" href="styles/gamified.css">
+</head>
+<body>
 
-    <main>
-      <section class="xp-ring">
-        <div class="ring" role="img" aria-label="XP ring animation">
-          <span>Level 04</span>
-        </div>
-        <div>
-          <h2>Progress that glows.</h2>
-          <p>XP fills a kinetic ring that pulses every time tests pass.</p>
-          <ul>
-            <li>Daily streak vaults with animated badges.</li>
-            <li>Squad-mode races: finish loops faster than friends.</li>
-            <li>Boss quests mix multiple beginner concepts for triumph moments.</li>
-          </ul>
-        </div>
-      </section>
+<div class="game-container">
+    <h1>🐍 Python Quest: Bug Hunter</h1>
 
-      <section class="game-cards">
-        <article>
-          <h3>Arcade Debug</h3>
-          <p>Fix bugs before timers explode pixel fireworks.</p>
-        </article>
-        <article>
-          <h3>Concept Bingo</h3>
-          <p>Collect Python tiles by solving themed riddles.</p>
-        </article>
-        <article>
-          <h3>Squad Boss</h3>
-          <p>Collaborate on longer quests with hint sharing cooldowns.</p>
-        </article>
-      </section>
+    <div class="status">
+        <span>Score: <span id="score">0</span></span>
+        <span>Lives: <span id="lives">3</span></span>
+    </div>
 
-      <section class="mentor-mode">
-        <div>
-          <p class="tag">Mentor boosts</p>
-          <h2>Guidance stays playful.</h2>
-          <p>
-            Gemini keeps hints motivational with voice pack styles, from calm coach to hype
-            MC.
-          </p>
-        </div>
-        <div class="style-switcher">
-          <button class="ghost-btn" data-tone="calm">Calm Coach</button>
-          <button class="ghost-btn" data-tone="spark">Spark Hype</button>
-          <button class="ghost-btn" data-tone="retro">Retro Bot</button>
-          <p id="toneOutput">Select a tone to preview mentor vibes.</p>
-        </div>
-      </section>
-    </main>
+    <div class="question-box">
+        <p id="question">Question will appear here</p>
+    </div>
 
-    <script src="scripts/gamified.js" type="module"></script>
-  </body>
+    <div class="options">
+        <button onclick="checkAnswer(0)"></button>
+        <button onclick="checkAnswer(1)"></button>
+        <button onclick="checkAnswer(2)"></button>
+        <button onclick="checkAnswer(3)"></button>
+    </div>
+<button class="next-btn" onclick="nextQuestion()">Next Level ➡</button>
+</div>
+
+<script src="scripts/gamified.js"></script>
+</body>
 </html>

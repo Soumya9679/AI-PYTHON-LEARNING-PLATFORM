@@ -1,0 +1,36 @@
+body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #141e30, #243b55);
+    color: white;
+}
+
+.track {
+    width: 80%;
+    height: 120px;
+    background: #444;
+    margin: 30px auto;
+    border-radius: 10px;
+    position: relative;
+}
+
+#car {
+    position: absolute;
+    left: 0;
+    top: 40px;
+    font-size: 40px;
+    transition: left 0.5s;
+}
+
+.quiz input {
+    padding: 8px;
+    margin: 10px;
+}
+
+button {
+    padding: 8px 15px;
+    background: orange;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
