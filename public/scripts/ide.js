@@ -7,6 +7,8 @@ const challenge = {
   description:
     "Use a loop to print a short status message for each wave. Keep the format identical on each line.",
   criteria: "You should see exactly three lines that increment from 0 to 2.",
+  mentorInstructions: "Give 1-2 upbeat hints, point out mistakes, never share final code.",
+  rubric: "Learner must print 'PulsePy >>>' followed by 0, 1, 2 on separate lines using a loop.",
   steps: [
     "Create a for loop that runs three times",
     "Inside the loop, print the label `PulsePy >>>` and the current counter",
@@ -24,6 +26,10 @@ const feedbackMessage = document.getElementById("feedbackMessage");
 const fallbackTextarea = document.getElementById("editorFallback");
 const editorSurface = document.getElementById("editorSurface");
 const resizeHandle = document.getElementById("editorResizeHandle");
+const hintButton = document.getElementById("hintButton");
+const mentorCard = document.getElementById("mentorCard");
+const mentorCopy = document.getElementById("mentorCopy");
+const mentorTone = document.getElementById("mentorTone");
 
 const challengeTag = document.getElementById("challengeTag");
 const challengeTitle = document.getElementById("challengeTitle");
@@ -33,6 +39,7 @@ const challengeSteps = document.getElementById("challengeSteps");
 
 let editorInstance;
 let lastUserOutput = "Run your code to see output here.";
+let lastErrorContext = "";
 
 function populateChallengeDetails() {
   if (challengeTag) challengeTag.textContent = challenge.tag;
@@ -59,6 +66,7 @@ initializeEditor();
 setupResizeHandle();
 
 const pyodideRuntimePromise = loadPyRuntime();
+const mentorFunctionPromise = initializeFirebaseMentor();
 
 async function loadPyRuntime() {
   try {
@@ -259,13 +267,77 @@ runButton?.addEventListener("click", async () => {
   try {
     const result = await evaluateSolution(code);
     lastUserOutput = result.userOutput;
+    lastErrorContext = result.status === "success" ? "" : result.message;
     displayOutput(result.message, result.status);
   } catch (error) {
     console.error(error);
     lastUserOutput = "";
+    lastErrorContext = "Unexpected runtime failure";
     displayOutput("Unexpected error. Refresh the page and try again.", "error");
   } finally {
     runButton.disabled = false;
     runButton.textContent = "Run Code";
   }
 });
+
+hintButton?.addEventListener("click", async () => {
+  hintButton.disabled = true;
+  mentorCopy.textContent = "Thinking through your code…";
+  mentorTone.textContent = "Status: contacting mentor";
+
+  try {
+    const getHint = await mentorFunctionPromise;
+    if (!getHint) {
+      mentorCopy.textContent = "Mentor isn’t available right now. Compare your output manually for now.";
+      mentorTone.textContent = "Status: offline";
+      return;
+    }
+
+    const payload = {
+      code: getUserCode(),
+      challengeTitle: challenge.title,
+      description: challenge.description,
+      rubric: challenge.rubric,
+      mentorInstructions: challenge.mentorInstructions,
+      stdout: lastUserOutput,
+      stderr: lastErrorContext,
+      expectedOutput: challenge.expectedOutput,
+    };
+
+    const response = await getHint(payload);
+    mentorCopy.textContent = response?.hint || "Keep iterating—focus on matching the spacing and count.";
+    mentorTone.textContent = `Tone: ${response?.tone ?? "spark"}`;
+  } catch (error) {
+    console.error("Hint error", error);
+    mentorCopy.textContent = "Mentor had a hiccup. Re-run your code and try again in a bit.";
+    mentorTone.textContent = "Status: retry later";
+  } finally {
+    hintButton.disabled = false;
+  }
+});
+
+async function initializeFirebaseMentor() {
+  if (!window.firebase?.functions) {
+    try {
+      await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js");
+      await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js");
+    } catch (error) {
+      console.warn("Firebase SDK failed to load", error);
+      return null;
+    }
+  }
+
+  const configMeta = document.querySelector("meta[name='firebase-config']");
+  const firebaseConfig = configMeta?.content ? JSON.parse(configMeta.content) : null;
+
+  if (!firebaseConfig) {
+    console.warn("Firebase config meta tag missing");
+    return null;
+  }
+
+  const app = window.firebase.apps.length
+    ? window.firebase.app()
+    : window.firebase.initializeApp(firebaseConfig);
+  const functionsSdk = window.firebase.functions(app);
+  return functionsSdk.httpsCallable("mentorHint");
+}
