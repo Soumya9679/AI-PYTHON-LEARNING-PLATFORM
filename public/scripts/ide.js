@@ -317,14 +317,15 @@ hintButton?.addEventListener("click", async () => {
 });
 
 async function initializeFirebaseMentor() {
-  if (!window.firebase?.functions) {
-    try {
-      await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js");
-      await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js");
-    } catch (error) {
-      console.warn("Firebase SDK failed to load", error);
-      return null;
-    }
+  let firebaseAppMod;
+  let firebaseFunctionsMod;
+
+  try {
+    firebaseAppMod = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js");
+    firebaseFunctionsMod = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-functions.js");
+  } catch (error) {
+    console.warn("Firebase SDK failed to load", error);
+    return null;
   }
 
   const configMeta = document.querySelector("meta[name='firebase-config']");
@@ -335,9 +336,15 @@ async function initializeFirebaseMentor() {
     return null;
   }
 
-  const app = window.firebase.apps.length
-    ? window.firebase.app()
-    : window.firebase.initializeApp(firebaseConfig);
-  const functionsSdk = window.firebase.functions(app);
-  return functionsSdk.httpsCallable("mentorHint");
+  const { initializeApp, getApps, getApp } = firebaseAppMod;
+  const { getFunctions, httpsCallable, connectFunctionsEmulator } = firebaseFunctionsMod;
+
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const functionsSdk = getFunctions(app);
+
+  if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+    connectFunctionsEmulator(functionsSdk, "localhost", 5001);
+  }
+
+  return (payload) => httpsCallable(functionsSdk, "mentorHint")(payload);
 }
