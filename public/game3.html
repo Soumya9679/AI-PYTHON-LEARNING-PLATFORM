@@ -2,25 +2,117 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Python Racing Game</title>
+    <title>Python Velocity Trials</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/game3.css">
 </head>
 <body>
+<div class="plasma"></div>
+<main class="arena">
+    <header class="hero">
+        <p class="eyebrow">Concept Racing League</p>
+        <h1>Python Velocity Trials</h1>
+        <p class="subtitle">Push your racer down the neon track by answering Python output questions. Nail streaks for extra boost, miss and feel the drag.</p>
+    </header>
 
-<h1>🏎 Python Racing Game</h1>
+    <section class="status-panel">
+        <div class="stat-card">
+            <span>Lap</span>
+            <strong id="lap">01</strong>
+            <small>Every 25m of progress</small>
+        </div>
+        <div class="stat-card">
+            <span>Streak</span>
+            <strong id="streak">0</strong>
+            <small>Chain correct answers for nitro</small>
+        </div>
+        <div class="stat-card">
+            <span>Penalties</span>
+            <strong id="penalties">0</strong>
+            <small>Wrong answers slow you down</small>
+        </div>
+        <div class="stat-card status">
+            <span>Status</span>
+            <strong id="status-banner">Systems nominal</strong>
+            <small>Reach 100m to win</small>
+        </div>
+    </section>
 
-<div class="track">
-    <div id="car">🚗</div>
-</div>
+    <section class="race-grid">
+        <div class="left-stack">
+            <section class="track-wrapper">
+                <div class="finish-flag">Finish</div>
+                <div class="track">
+                    <div class="track-lines"></div>
+                    <div class="progress" id="progress-fill"></div>
+                    <div class="car player" id="player-car">
+                        <div class="car-body"></div>
+                        <div class="car-glow"></div>
+                    </div>
+                    <div class="car rival" id="rival-car">
+                        <div class="car-body"></div>
+                        <div class="car-glow"></div>
+                    </div>
+                </div>
+            </section>
 
-<div class="quiz">
-    <p id="question">Loading...</p>
-    <input type="text" id="answer" placeholder="Your answer">
-    <button onclick="checkAnswer()">Submit</button>
-</div>
+            <section class="race-meta">
+                <div class="leaderboard">
+                    <p class="meta-title">Track Leaders</p>
+                    <div class="leader-row">
+                        <div>
+                            <span class="label">Python Racer</span>
+                            <p class="tag">You</p>
+                        </div>
+                        <strong id="player-distance">0m</strong>
+                    </div>
+                    <div class="leader-row rival">
+                        <div>
+                            <span class="label">Autopilot Rival</span>
+                            <p class="tag">AI Pace Car</p>
+                        </div>
+                        <strong id="rival-distance">0m</strong>
+                    </div>
+                    <div class="position-callout" id="position-callout">Grid start</div>
+                </div>
+                <div class="speed-panel">
+                    <p class="meta-title">Speed Gauge</p>
+                    <div class="speed-meter">
+                        <div class="speed-fill" id="speed-fill"></div>
+                        <div class="speed-marker"></div>
+                    </div>
+                    <p class="speed-value" id="speed-value">0 km/h</p>
+                </div>
+            </section>
+        </div>
 
-<p id="status"></p>
+        <div class="question-column">
+            <section class="question-card">
+                <div class="question-head">
+                    <span class="concept-pill" id="concept-pill">Concept</span>
+                    <p class="question-count" id="question-count">Challenge 1</p>
+                </div>
+                <pre class="code-display"><code id="code-snippet">Loading grid...</code></pre>
+                <p class="prompt" id="prompt-text">Hold tight...</p>
+                <div class="options" id="options"></div>
+                <div class="card-actions">
+                    <button class="ghost" id="hint-btn">Show hint</button>
+                    <button class="primary" id="next-btn" disabled>Next challenge</button>
+                </div>
+                <p class="hint" id="hint-text"></p>
+            </section>
+        </div>
+    </section>
 
+    <section class="telemetry">
+        <h3>Telemetry Feed</h3>
+        <ul id="telemetry-feed">
+            <li>Diagnostics loaded. Launch when ready.</li>
+        </ul>
+    </section>
+</main>
 <script src="scripts/game3.js"></script>
 </body>
 </html>

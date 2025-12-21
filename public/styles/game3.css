@@ -1,36 +1,522 @@
-body {
-    text-align: center;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #141e30, #243b55);
-    color: white;
+:root {
+    --bg: #04060f;
+    --bg-secondary: #0f182d;
+    --accent: #ff7f3f;
+    --accent-strong: #ffbf3f;
+    --text: #f5f8ff;
+    --muted: #8ea1c7;
+    --card: rgba(11, 23, 43, 0.78);
+    --stroke: rgba(255, 255, 255, 0.08);
+    --success: #35ffb1;
+    --danger: #ff4d6d;
 }
 
-.track {
-    width: 80%;
-    height: 120px;
-    background: #444;
-    margin: 30px auto;
-    border-radius: 10px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: 'Space Grotesk', 'Chakra Petch', sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at 20% 20%, #1b2c52, #04060f 60%) fixed;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px 60px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.plasma {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 10% 15%, rgba(255, 127, 63, 0.32), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(91, 123, 255, 0.28), transparent 45%),
+                radial-gradient(circle at 45% 80%, rgba(53, 255, 177, 0.18), transparent 40%);
+    z-index: 0;
+    filter: blur(40px);
+    pointer-events: none;
+}
+
+.arena {
+    width: min(1100px, 100%);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.hero {
+    text-align: left;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--accent-strong);
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+}
+
+.hero h1 {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    max-width: 640px;
+}
+
+.status-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.race-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.left-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.question-column {
     position: relative;
 }
 
-#car {
+.question-column .question-card {
+    position: sticky;
+    top: 24px;
+}
+
+.stat-card {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stat-card span {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+}
+
+.stat-card strong {
+    font-size: 2rem;
+    font-family: 'Chakra Petch', sans-serif;
+}
+
+.stat-card small {
+    color: var(--muted);
+}
+
+.stat-card.status strong {
+    font-size: 1.1rem;
+}
+
+.track-wrapper {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.finish-flag {
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    font-size: 0.8rem;
+    text-align: right;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+
+.track {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0, transparent 15%),
+                linear-gradient(0deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    height: 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+.track-lines {
     position: absolute;
-    left: 0;
-    top: 40px;
-    font-size: 40px;
-    transition: left 0.5s;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0,
+        rgba(255, 255, 255, 0.05) 50px,
+        transparent 50px,
+        transparent 120px
+    );
+    animation: trackFlow 3s linear infinite;
+    opacity: 0.6;
+    z-index: 0;
 }
 
-.quiz input {
-    padding: 8px;
-    margin: 10px;
+.track::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
 }
 
-button {
-    padding: 8px 15px;
-    background: orange;
-    border: none;
-    border-radius: 5px;
+.progress {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255, 127, 63, 0.6), rgba(255, 191, 63, 0.2));
+    width: 0;
+    transition: width 0.5s ease;
+    z-index: 1;
+}
+
+.car {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--car-x, 0%) - 2.5rem);
+    transform: translateY(-50%);
+    width: 80px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: left 0.5s ease;
+    z-index: 2;
+}
+
+.car-body {
+    width: 60px;
+    height: 26px;
+    background: linear-gradient(120deg, var(--accent), var(--accent-strong));
+    border-radius: 20px;
+    box-shadow: 0 8px 18px rgba(255, 127, 63, 0.3);
+}
+
+.car.rival .car-body {
+    background: linear-gradient(120deg, #3fe0ff, #7c9dff);
+    box-shadow: 0 8px 18px rgba(63, 224, 255, 0.3);
+}
+
+.car-glow {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(255, 127, 63, 0.35), transparent 60%);
+    filter: blur(6px);
+    z-index: -1;
+}
+
+.car.rival .car-glow {
+    background: radial-gradient(circle, rgba(63, 224, 255, 0.35), transparent 60%);
+}
+
+.race-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.leaderboard,
+.speed-panel {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.meta-title {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.leader-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+}
+
+.leader-row.rival {
+    border-color: rgba(104, 169, 255, 0.3);
+}
+
+.leader-row .label {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+.leader-row strong {
+    font-size: 1.4rem;
+    font-family: 'Chakra Petch', sans-serif;
+}
+
+.tag {
+    font-size: 0.85rem;
+    color: var(--text);
+    opacity: 0.7;
+}
+
+.position-callout {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.8rem;
+    padding: 10px 14px;
+    border-radius: 999px;
+    text-align: center;
+    background: rgba(255, 127, 63, 0.15);
+    border: 1px solid rgba(255, 127, 63, 0.3);
+}
+
+.speed-meter {
+    position: relative;
+    height: 16px;
+    border-radius: 999px;
+    border: 1px solid var(--stroke);
+    background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.speed-fill {
+    position: absolute;
+    inset: 0;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), #ff4d6d);
+    transition: width 0.4s ease;
+}
+
+.speed-marker {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 60%);
+    pointer-events: none;
+}
+
+.speed-value {
+    font-size: 1.5rem;
+    font-family: 'Chakra Petch', sans-serif;
+}
+
+.question-card {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.question-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.concept-pill {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.question-count {
+    color: var(--muted);
+}
+
+.code-display {
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 16px;
+    padding: 18px;
+    font-family: 'Chakra Petch', monospace;
+    font-size: 0.95rem;
+    overflow-x: auto;
+}
+
+.prompt {
+    font-size: 1.05rem;
+    color: var(--accent-strong);
+}
+
+.options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.options button {
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text);
+    text-align: left;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.2s, border 0.2s;
     cursor: pointer;
+}
+
+.options button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.options button:disabled {
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+.options button.correct {
+    border-color: var(--success);
+    background: rgba(53, 255, 177, 0.1);
+}
+
+.options button.incorrect {
+    border-color: var(--danger);
+    background: rgba(255, 77, 109, 0.12);
+}
+
+.card-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card-actions button {
+    border-radius: 999px;
+    border: none;
+    padding: 12px 22px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.card-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.card-actions button:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.primary {
+    background: linear-gradient(120deg, var(--accent), var(--accent-strong));
+    color: #050505;
+}
+
+.ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.hint {
+    min-height: 20px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.telemetry {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.telemetry h3 {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.telemetry ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.telemetry li {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    font-size: 0.95rem;
+}
+
+.telemetry li.success {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.telemetry li.fail {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+@keyframes trackFlow {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-170px);
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 24px 16px 40px;
+    }
+
+    .race-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .question-column .question-card {
+        position: static;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .hero {
+        text-align: center;
+    }
+
+    .question-head {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
 }
