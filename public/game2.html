@@ -2,18 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Number Puzzle Quest</title>
+    <title>Python Flow Slide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/game2.css">
 </head>
 <body>
+<div class="plasma"></div>
+<main class="layout">
+    <header class="hero">
+        <p class="eyebrow">Python Flow Lab</p>
+        <h1>Python Flow Slide</h1>
+        <p class="lede">Reorder the code tiles to rebuild a working Python function. Slide to arrange each step in the correct execution order before the checker calls it.</p>
+    </header>
 
-<h1>🧩 Number Puzzle Quest</h1>
-<p>Arrange the numbers from 1 to 8</p>
+    <section class="grid">
+        <div class="board-wrap">
+            <div class="hud">
+                <div class="hud-card">
+                    <span>Moves</span>
+                    <strong id="move-count">0</strong>
+                </div>
+                <div class="hud-card">
+                    <span>Time</span>
+                    <strong id="timer">00:00</strong>
+                </div>
+                <div class="hud-card status" id="status-pill">Shuffle to start</div>
+            </div>
 
-<div class="puzzle-container" id="puzzle"></div>
+            <div class="puzzle" id="puzzle"></div>
 
-<button onclick="shufflePuzzle()">Shuffle</button>
-<p id="message"></p>
+            <div class="controls">
+                <button class="primary" id="shuffle-btn">Shuffle</button>
+                <button class="ghost" id="hint-btn">Show target</button>
+            </div>
+            <div class="message" id="message">Arrange the tiles to match a valid Python flow.</div>
+        </div>
+
+        <div class="info">
+            <div class="panel">
+                <p class="panel-title">Target Program</p>
+                <pre class="code" id="target-code"></pre>
+            </div>
+            <div class="panel">
+                <p class="panel-title">Concept Feed</p>
+                <ul class="feed" id="concept-feed"></ul>
+            </div>
+        </div>
+    </section>
+</main>
 
 <script src="scripts/game2.js"></script>
 </body>
