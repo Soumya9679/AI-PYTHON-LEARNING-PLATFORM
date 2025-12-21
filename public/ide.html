@@ -1,109 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PulsePy IDE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <meta
-      name="firebase-config"
-      content='{"apiKey":"YOUR_API_KEY","authDomain":"YOUR_AUTH_DOMAIN","projectId":"YOUR_PROJECT_ID","appId":"YOUR_APP_ID"}'
-    />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/ide.css" />
-  </head>
-  <body>
-    <header class="ide-nav">
-      <div class="brand">
-        <a class="logo" href="index.html">PulsePy</a>
-        <span class="session-chip">Practice IDE · Beginner friendly</span>
-      </div>
-    </header>
 
-    <main class="practice-shell">
-      <section class="panel challenge-panel">
-        <p class="tag" id="challengeTag">Challenge</p>
-        <h1 id="challengeTitle">Loading challenge…</h1>
-        <p id="challengeDescription">
-          Focus on one concept at a time. The challenge brief will appear here.
-        </p>
-        <div class="criteria">
-          <h3>Success criteria</h3>
-          <p id="challengeCriteria">You should see a short list of what success looks like.</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PulsePy IDE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <meta name="firebase-config"
+    content='{"apiKey":"real-key","authDomain":"ai-python-ide.firebaseapp.com","projectId":"ai-python-ide","appId":"1:xxxx:web:yyyy"}' />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/ide.css" />
+</head>
+
+<body>
+  <header class="ide-nav">
+    <div class="brand">
+      <a class="logo" href="index.html">PulsePy</a>
+      <span class="session-chip">Practice IDE · Beginner friendly</span>
+    </div>
+  </header>
+
+  <main class="practice-shell">
+    <section class="panel challenge-panel">
+      <p class="tag" id="challengeTag">Challenge</p>
+      <h1 id="challengeTitle">Loading challenge…</h1>
+      <p id="challengeDescription">
+        Focus on one concept at a time. The challenge brief will appear here.
+      </p>
+      <div class="criteria">
+        <h3>Success criteria</h3>
+        <p id="challengeCriteria">You should see a short list of what success looks like.</p>
+      </div>
+      <ul id="challengeSteps" class="steps"></ul>
+    </section>
+    <div class="workspace-panels">
+      <section class="panel editor-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="tag">Code editor</p>
+            <h2>Write your answer</h2>
+          </div>
+          <button class="solid-btn" id="runCode">Run Code</button>
         </div>
-        <ul id="challengeSteps" class="steps"></ul>
+        <div class="editor-surface" id="editorSurface">
+          <div id="editor" aria-label="Monaco editor"></div>
+          <textarea id="editorFallback" class="editor-fallback" spellcheck="false"></textarea>
+          <div class="resize-handle" id="editorResizeHandle" aria-label="Resize editor"></div>
+        </div>
+        <p class="note">
+          We never auto-correct your work. If something breaks, read the feedback, tweak your
+          code, and try again.
+        </p>
       </section>
-      <div class="workspace-panels">
-        <section class="panel editor-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="tag">Code editor</p>
-              <h2>Write your answer</h2>
-            </div>
-            <button class="solid-btn" id="runCode">Run Code</button>
+
+      <div class="feedback-stack">
+        <section class="panel output-panel">
+          <div class="output-header">
+            <h2>Output</h2>
+            <span id="outputStatus" class="status-pill">Idle</span>
           </div>
-          <div class="editor-surface" id="editorSurface">
-            <div id="editor" aria-label="Monaco editor"></div>
-            <textarea
-              id="editorFallback"
-              class="editor-fallback"
-              spellcheck="false"
-            ></textarea>
-            <div class="resize-handle" id="editorResizeHandle" aria-label="Resize editor"></div>
-          </div>
-          <p class="note">
-            We never auto-correct your work. If something breaks, read the feedback, tweak your
-            code, and try again.
-          </p>
+          <pre id="outputText">Run your code to see output here.</pre>
+          <p id="feedbackMessage">Feedback will appear right after each run.</p>
         </section>
 
-        <div class="feedback-stack">
-          <section class="panel output-panel">
-            <div class="output-header">
-              <h2>Output</h2>
-              <span id="outputStatus" class="status-pill">Idle</span>
+        <section class="panel mentor-panel">
+          <div class="mentor-header">
+            <div>
+              <p class="tag">AI mentor</p>
+              <h2>Hint request</h2>
             </div>
-            <pre id="outputText">Run your code to see output here.</pre>
-            <p id="feedbackMessage">Feedback will appear right after each run.</p>
-          </section>
-
-          <section class="panel mentor-panel">
-            <div class="mentor-header">
-              <div>
-                <p class="tag">AI mentor</p>
-                <h2>Hint request</h2>
-              </div>
-              <button class="ghost-btn" id="hintButton">Ask for hint</button>
-            </div>
-            <article class="mentor-card" id="mentorCard">
-              <p class="mentor-copy" id="mentorCopy">
-                Run your code first, then request a hint if you still feel stuck. Gemini will give you
-                gentle nudges—not full solutions.
-              </p>
-              <span class="mentor-tone" id="mentorTone">Status: idle</span>
-            </article>
-          </section>
-        </div>
+            <button class="ghost-btn" id="hintButton">Ask for hint</button>
+          </div>
+          <article class="mentor-card" id="mentorCard">
+            <p class="mentor-copy" id="mentorCopy">
+              Run your code first, then request a hint if you still feel stuck. Gemini will give you
+              gentle nudges—not full solutions.
+            </p>
+            <span class="mentor-tone" id="mentorTone">Status: idle</span>
+          </article>
+        </section>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <script>
-      window.MonacoEnvironment = {
-        getWorkerUrl: () => {
-          const blob = new Blob([
-            "self.MonacoEnvironment = { baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/' };",
-            "importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/base/worker/workerMain.js');"
-          ], { type: 'text/javascript' });
-          return URL.createObjectURL(blob);
-        }
-      };
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
-    <script type="module" src="scripts/ide.js"></script>
-  </body>
+  <script>
+    window.MonacoEnvironment = {
+      getWorkerUrl: () => {
+        const blob = new Blob([
+          "self.MonacoEnvironment = { baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/' };",
+          "importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/base/worker/workerMain.js');"
+        ], { type: 'text/javascript' });
+        return URL.createObjectURL(blob);
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+  <script type="module" src="scripts/ide.js"></script>
+</body>
+
 </html>
