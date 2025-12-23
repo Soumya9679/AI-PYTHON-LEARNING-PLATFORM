@@ -7,7 +7,7 @@ const PROJECT_ID = "ai-python-ide";
 const isStaticDevHost = /localhost:5500|127\.0\.0\.1:5500/.test(window.location.host);
 const emulatorBase = `http://127.0.0.1:5001/${PROJECT_ID}/us-central1/api/auth`;
 const API_BASE = isStaticDevHost ? emulatorBase : "/api/auth";
-const DEFAULT_REDIRECT = isStaticDevHost ? "/public/gamified.html" : "/gamified.html";
+const DEFAULT_REDIRECT = isStaticDevHost ? "/public/index.html" : "/index.html";
 const LOGIN_REDIRECT = loginForm?.dataset.redirect ?? DEFAULT_REDIRECT;
 const SIGNUP_REDIRECT = signupForm?.dataset.redirect ?? DEFAULT_REDIRECT;
 

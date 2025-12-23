@@ -1,28 +1,116 @@
-'use strict';
+"use strict";
 
-const PROJECT_ID = 'ai-python-ide';
-const DEFAULT_API_BASE = '/api';
+const PROJECT_ID = "ai-python-ide";
+const DEFAULT_API_BASE = "/api";
 const LOCAL_FUNCTIONS_API = `http://localhost:5001/${PROJECT_ID}/us-central1/api`;
+const MONACO_BASE_URL = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min";
+const MONACO_LOADER_URL = `${MONACO_BASE_URL}/vs/loader.min.js`;
+const MONACO_REQUIRE_PATH = `${MONACO_BASE_URL}/vs`;
+const MONACO_THEME = "pulsepy-dark";
 const API_BASE = resolveApiBase();
-const STATUS_VARIANTS = {
-  idle: { label: 'Not attempted', className: '' },
-  running: { label: 'Running tests…', className: 'status-badge--pending' },
-  pass: { label: 'All tests passed', className: 'status-badge--passed' },
-  fail: { label: 'Needs work', className: 'status-badge--failed' },
-  error: { label: 'Error', className: 'status-badge--failed' },
+
+const CHALLENGE_FILE_MAP = {
+  1: "even_or_odd.py",
+  2: "prime_check.py",
+  3: "factorial.py",
+  4: "fibonacci.py",
+  5: "reverse_string.py",
+  6: "palindrome.py",
+  7: "sum_digits.py",
+  8: "largest_in_list.py",
+  9: "count_vowels.py",
+  10: "armstrong.py",
 };
 
-const STORAGE_PREFIX = 'challenge-code-';
+const STATUS_VARIANTS = {
+  idle: { label: "Not attempted", className: "" },
+  running: { label: "Running tests…", className: "status-badge--pending" },
+  pass: { label: "All tests passed", className: "status-badge--passed" },
+  fail: { label: "Needs work", className: "status-badge--failed" },
+  error: { label: "Error", className: "status-badge--failed" },
+};
 
-document.addEventListener('DOMContentLoaded', () => {
-  const cards = document.querySelectorAll('.card[data-challenge-id]');
-  cards.forEach((card) => attachCardHandlers(card));
+const STORAGE_PREFIX = "challenge-code-";
+const monacoReady = loadMonaco();
+
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const monaco = await monacoReady;
+    defineTheme(monaco);
+    const cards = document.querySelectorAll(".card[data-challenge-id]");
+    cards.forEach((card) => attachCardHandlers(card, monaco));
+  } catch (error) {
+    console.error("Failed to initialize Monaco", error);
+    alert("Unable to load the code editor. Please refresh the page.");
+  }
 });
+
+function loadMonaco() {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const scriptId = "monaco-loader-script";
+
+    const boot = () => {
+      if (typeof window.require !== "function") {
+        return false;
+      }
+      window.require.config({ paths: { vs: MONACO_REQUIRE_PATH } });
+      window.require(["vs/editor/editor.main"], () => resolve(window.monaco));
+      return true;
+    };
+
+    const poll = () => {
+      if (boot()) return;
+      if (Date.now() - start > 15000) {
+        reject(new Error("Timed out loading Monaco editor."));
+        return;
+      }
+      setTimeout(poll, 40);
+    };
+
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = MONACO_LOADER_URL;
+      script.crossOrigin = "anonymous";
+      script.referrerPolicy = "no-referrer";
+      script.onload = poll;
+      script.onerror = () => reject(new Error("Failed to download Monaco editor assets."));
+      document.head.appendChild(script);
+    } else {
+      poll();
+    }
+  });
+}
+
+function defineTheme(monaco) {
+  if (!monaco?.editor?.defineTheme) return;
+  monaco.editor.defineTheme(MONACO_THEME, {
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      { token: "comment", foreground: "94a3b8" },
+      { token: "keyword", foreground: "c084fc" },
+      { token: "string", foreground: "7dd3fc" },
+      { token: "number", foreground: "fcd34d" },
+      { token: "type.identifier", foreground: "f472b6" },
+    ],
+    colors: {
+      "editor.background": "#050f1f",
+      "editorCursor.foreground": "#38bdf8",
+      "editorLineNumber.foreground": "#6b7280",
+      "editorLineNumber.activeForeground": "#f8fafc",
+      "editor.selectionBackground": "#1d4ed833",
+      "editorIndentGuide.background": "#1f2937",
+    },
+  });
+  monaco.editor.setTheme(MONACO_THEME);
+}
 
 function resolveApiBase() {
   const { hostname, port } = window.location;
-  const isLiveDevServer = ['5500', '5173', '3000'].includes(port);
-  const isLocalHost = hostname === '127.0.0.1' || hostname === 'localhost';
+  const isLiveDevServer = ["5500", "5173", "3000"].includes(port);
+  const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
 
   if (isLocalHost && isLiveDevServer) {
     return LOCAL_FUNCTIONS_API;
@@ -31,22 +119,31 @@ function resolveApiBase() {
   return DEFAULT_API_BASE;
 }
 
-function attachCardHandlers(card) {
+function attachCardHandlers(card, monaco) {
   const challengeId = card.dataset.challengeId;
-  const textarea = card.querySelector('textarea');
-  const button = card.querySelector('.submit-btn');
-  const resultEl = card.querySelector('.result');
+  const textarea = card.querySelector("textarea");
+  const button = card.querySelector(".submit-btn");
+  const resultEl = card.querySelector(".result");
   const statusEl = document.getElementById(`status-${challengeId}`);
+  const filename = CHALLENGE_FILE_MAP[challengeId] || `challenge-${challengeId}.py`;
 
-  hydrateFromStorage(challengeId, textarea);
+  const savedDraft = sanitizeInitialValue(getSavedDraft(challengeId));
+  const defaultValue = sanitizeInitialValue(textarea?.value ?? "");
+  const initialValue = savedDraft || defaultValue;
 
-  textarea.addEventListener('input', () => persistDraft(challengeId, textarea.value));
+  const editor = mountMonacoEditor({
+    monaco,
+    textarea,
+    fileLabel: filename,
+    initialValue,
+    onChange: (value) => persistDraft(challengeId, value),
+  });
 
-  button.addEventListener('click', async () => {
-    const code = textarea.value;
+  button.addEventListener("click", async () => {
+    const code = editor?.getValue?.() || "";
     if (!code.trim()) {
-      renderInlineError(resultEl, 'Please write some code before running the tests.');
-      updateStatus(statusEl, 'fail', 'No code');
+      renderInlineError(resultEl, "Please write some code before running the tests.");
+      updateStatus(statusEl, "fail", "No code");
       return;
     }
 
@@ -228,14 +325,12 @@ function escapeHTML(value = '') {
     .replace(/'/g, '&#39;');
 }
 
-function hydrateFromStorage(challengeId, textarea) {
+function getSavedDraft(challengeId) {
   try {
-    const saved = localStorage.getItem(`${STORAGE_PREFIX}${challengeId}`);
-    if (saved && textarea) {
-      textarea.value = saved;
-    }
+    return localStorage.getItem(`${STORAGE_PREFIX}${challengeId}`) || "";
   } catch (error) {
-    console.warn('Unable to read saved code', error);
+    console.warn("Unable to read saved code", error);
+    return "";
   }
 }
 
@@ -243,7 +338,95 @@ function persistDraft(challengeId, value) {
   try {
     localStorage.setItem(`${STORAGE_PREFIX}${challengeId}`, value);
   } catch (error) {
-    console.warn('Unable to save code draft', error);
+    console.warn("Unable to save code draft", error);
   }
+}
+
+function sanitizeInitialValue(value = "") {
+  if (!value) return "";
+  return value.replace(/^[\r\n]+/, "");
+}
+
+function mountMonacoEditor({ monaco, textarea, fileLabel, initialValue, onChange }) {
+  if (!textarea || !monaco?.editor) {
+    return {
+      getValue: () => initialValue,
+    };
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "code-editor";
+
+  const header = document.createElement("div");
+  header.className = "code-editor__header";
+
+  const traffic = document.createElement("div");
+  traffic.className = "code-editor__traffic";
+  ["red", "amber", "green"].forEach((tone) => {
+    const dot = document.createElement("span");
+    dot.className = `traffic-dot traffic-dot--${tone}`;
+    traffic.appendChild(dot);
+  });
+
+  const filenameEl = document.createElement("span");
+  filenameEl.className = "code-editor__filename";
+  filenameEl.textContent = fileLabel;
+
+  header.appendChild(traffic);
+  header.appendChild(filenameEl);
+
+  const body = document.createElement("div");
+  body.className = "code-editor__body";
+
+  const surface = document.createElement("div");
+  surface.className = "code-editor__monaco";
+  surface.setAttribute("aria-label", `Code editor for ${fileLabel}`);
+  body.appendChild(surface);
+
+  const statusBar = document.createElement("div");
+  statusBar.className = "code-editor__statusbar";
+  const runtimeSpan = document.createElement("span");
+  runtimeSpan.textContent = "Python 3.11";
+  const fileSpan = document.createElement("span");
+  fileSpan.textContent = fileLabel;
+  const positionSpan = document.createElement("span");
+  positionSpan.textContent = "Ln 1, Col 1";
+  statusBar.append(runtimeSpan, fileSpan, positionSpan);
+
+  textarea.parentNode.replaceChild(wrapper, textarea);
+  wrapper.appendChild(header);
+  wrapper.appendChild(body);
+  wrapper.appendChild(statusBar);
+
+  const editor = monaco.editor.create(surface, {
+    value: initialValue,
+    language: "python",
+    theme: MONACO_THEME,
+    automaticLayout: true,
+    minimap: { enabled: false },
+    fontFamily: "'JetBrains Mono', Consolas, 'Fira Code', monospace",
+    fontSize: 15,
+    scrollBeyondLastLine: false,
+    smoothScrolling: true,
+    padding: { top: 12, bottom: 18 },
+  });
+
+  const updatePosition = (position) => {
+    if (!positionSpan || !position) return;
+    positionSpan.textContent = `Ln ${position.lineNumber}, Col ${position.column}`;
+  };
+
+  editor.onDidChangeModelContent(() => {
+    onChange?.(editor.getValue());
+    updatePosition(editor.getPosition());
+  });
+
+  editor.onDidChangeCursorPosition((event) => updatePosition(event.position));
+  updatePosition(editor.getPosition());
+
+  return {
+    getValue: () => editor.getValue(),
+    focus: () => editor.focus(),
+  };
 }
 

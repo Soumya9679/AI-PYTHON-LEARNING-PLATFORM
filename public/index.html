@@ -18,11 +18,11 @@
     <header class="nav-shell">
       <div class="brand-mark">PulsePy</div>
       <nav>
-        <a href="challenges.html">Challenges</a>
-        <a href="ide.html">IDE</a>
-        <a href="gamified.html">Game Lab</a>
-        <button class="ghost-btn" id="loginBtn">Log in</button>
-        <button class="solid-btn" id="signupBtn">Sign up</button>
+        <a data-auth-slot="protected" href="challenges.html" hidden>Challenges</a>
+        <a data-auth-slot="protected" href="ide.html" hidden>IDE</a>
+        <a data-auth-slot="protected" href="gamified.html" hidden>Game Lab</a>
+        <button class="ghost-btn" data-auth-slot="guest" id="loginBtn">Log in</button>
+        <button class="solid-btn" data-auth-slot="guest" id="signupBtn">Sign up</button>
       </nav>
     </header>
 

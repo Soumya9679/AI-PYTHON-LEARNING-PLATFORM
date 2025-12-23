@@ -62,17 +62,76 @@ code {
   border-radius: 4px;
 }
 
-textarea {
-  width: 100%;
-  min-height: 140px;
-  padding: 14px;
+.code-editor {
   margin-top: 16px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #010712;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.05), 0 25px 45px rgba(2, 6, 23, 0.42);
+  overflow: hidden;
+}
+
+.code-editor__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: linear-gradient(120deg, #020617, #0f172a);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.code-editor__traffic {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.traffic-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.traffic-dot--red {
+  background: #f87171;
+}
+
+.traffic-dot--amber {
+  background: #facc15;
+}
+
+.traffic-dot--green {
+  background: #4ade80;
+}
+
+.code-editor__filename {
+  color: rgba(248, 250, 252, 0.9);
   font-family: 'JetBrains Mono', Consolas, monospace;
   font-size: 0.95rem;
-  resize: vertical;
-  background: #ffffff;
+}
+
+.code-editor__body {
+  position: relative;
+  height: 260px;
+  background: #020b1b;
+}
+
+.code-editor__monaco {
+  width: 100%;
+  height: 100%;
+}
+
+.code-editor__statusbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: #a5b4fc;
+  background: #070b18;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+  font-family: 'JetBrains Mono', Consolas, monospace;
 }
 
 .submit-btn {

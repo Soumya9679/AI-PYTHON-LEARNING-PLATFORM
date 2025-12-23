@@ -234,7 +234,7 @@ api.post(
 
     return res.status(201).json({
       message: "Account created successfully.",
-      redirectTo: "/gamified.html",
+      redirectTo: "/index.html",
     });
   })
 );
@@ -274,7 +274,7 @@ api.post(
 
     return res.json({
       message: "Welcome back!",
-      redirectTo: "/gamified.html",
+      redirectTo: "/index.html",
     });
   })
 );
