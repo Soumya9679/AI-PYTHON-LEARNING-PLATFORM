@@ -1,5 +1,7 @@
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs";
 
+const NETLIFY_SITE = "team-coffee-code.netlify.app";
+
 const challenge = {
   id: "loop-basics",
   tag: "Quest · Beginner",
@@ -342,7 +344,13 @@ async function initializeFirebaseMentor() {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const functionsSdk = getFunctions(app);
 
-  if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+  const hostName = window.location.hostname || "";
+  const shouldUseEmulator =
+    ["localhost", "127.0.0.1"].includes(hostName) ||
+    hostName === NETLIFY_SITE ||
+    hostName.endsWith(`--${NETLIFY_SITE}`);
+
+  if (shouldUseEmulator) {
     connectFunctionsEmulator(functionsSdk, "localhost", 5001);
   }
 

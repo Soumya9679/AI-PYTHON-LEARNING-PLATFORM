@@ -1,8 +1,9 @@
-"use strict";
+import { applyAuthHeaders } from "./session.js";
 
 const PROJECT_ID = "ai-python-ide";
 const DEFAULT_API_BASE = "/api";
 const LOCAL_FUNCTIONS_API = `http://localhost:5001/${PROJECT_ID}/us-central1/api`;
+const NETLIFY_SITE = "team-coffee-code.netlify.app";
 const MONACO_BASE_URL = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min";
 const MONACO_LOADER_URL = `${MONACO_BASE_URL}/vs/loader.min.js`;
 const MONACO_REQUIRE_PATH = `${MONACO_BASE_URL}/vs`;
@@ -108,15 +109,22 @@ function defineTheme(monaco) {
 }
 
 function resolveApiBase() {
-  const { hostname, port } = window.location;
-  const isLiveDevServer = ["5500", "5173", "3000"].includes(port);
-  const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
-
-  if (isLocalHost && isLiveDevServer) {
+  if (shouldUseLocalApi()) {
     return LOCAL_FUNCTIONS_API;
   }
 
   return DEFAULT_API_BASE;
+}
+
+function shouldUseLocalApi() {
+  const { hostname, port } = window.location;
+  const isLiveDevServer = ["5500", "5173", "3000"].includes(port);
+  const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
+  const isNetlifyHost =
+    hostname === NETLIFY_SITE ||
+    hostname.endsWith(`--${NETLIFY_SITE}`);
+
+  return (isLocalHost && isLiveDevServer) || isNetlifyHost;
 }
 
 function attachCardHandlers(card, monaco) {
@@ -159,7 +167,7 @@ async function submitChallenge({ challengeId, code, button, resultEl, statusEl }
   try {
     const response = await fetch(`${API_BASE}/challenges/${challengeId}/submit`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: applyAuthHeaders({ 'Content-Type': 'application/json' }),
       credentials: 'include',
       body: JSON.stringify({ code }),
     });

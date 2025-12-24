@@ -1,12 +1,19 @@
+import { persistSessionToken, clearSessionToken } from "./session.js";
+
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
 const loginStatus = document.getElementById("loginStatus");
 const signupStatus = document.getElementById("signupStatus");
 
 const PROJECT_ID = "ai-python-ide";
+const NETLIFY_SITE = "team-coffee-code.netlify.app";
+const hostName = window.location.hostname || "";
 const isStaticDevHost = /localhost:5500|127\.0\.0\.1:5500/.test(window.location.host);
+const isNetlifyDeployment =
+  hostName === NETLIFY_SITE ||
+  hostName.endsWith(`--${NETLIFY_SITE}`);
 const emulatorBase = `http://127.0.0.1:5001/${PROJECT_ID}/us-central1/api/auth`;
-const API_BASE = isStaticDevHost ? emulatorBase : "/api/auth";
+const API_BASE = (isStaticDevHost || isNetlifyDeployment) ? emulatorBase : "/api/auth";
 const DEFAULT_REDIRECT = isStaticDevHost ? "/public/index.html" : "/index.html";
 const LOGIN_REDIRECT = loginForm?.dataset.redirect ?? DEFAULT_REDIRECT;
 const SIGNUP_REDIRECT = signupForm?.dataset.redirect ?? DEFAULT_REDIRECT;
@@ -62,6 +69,11 @@ async function postAuth(path, payload) {
   });
 
   const data = await response.json().catch(() => ({}));
+  if (response.ok && data.sessionToken) {
+    persistSessionToken(data.sessionToken);
+  } else if (!response.ok && response.status === 401) {
+    clearSessionToken();
+  }
   if (!response.ok) {
     const errorMessage = data.error || data.errors?.[0] || "Unexpected error. Please try again.";
     throw new Error(errorMessage);

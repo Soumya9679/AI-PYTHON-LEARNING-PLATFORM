@@ -22,6 +22,8 @@ const SESSION_COOKIE_NAME = "pulsepy_session";
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const isProduction = process.env.NODE_ENV === "production";
 
+const NETLIFY_SITE = "team-coffee-code.netlify.app";
+
 const allowedOrigins = Array.from(
   new Set(
     [
@@ -32,10 +34,14 @@ const allowedOrigins = Array.from(
       "http://localhost:5173",
       "http://localhost:5500",
       "http://127.0.0.1:5500",
-
+      "https://team-coffee-code.netlify.app",
     ].filter(Boolean)
   )
 );
+
+const allowedOriginPatterns = [
+  new RegExp(`^https://(?:[a-z0-9-]+--)?${NETLIFY_SITE.replace(/\./g, "\\.")}$`, "i"),
+];
 
 const PYTHON_BINARIES = [process.env.PYTHON_BIN, "python3", "python"].filter(Boolean);
 const PYTHON_TIMEOUT_MS = 5000;
@@ -157,7 +163,9 @@ api.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      const explicitlyAllowed = allowedOrigins.includes(origin);
+      const matchesPattern = allowedOriginPatterns.some((regex) => regex.test(origin));
+      if (explicitlyAllowed || matchesPattern) return callback(null, true);
       return callback(new Error("Origin not allowed"));
     },
     credentials: true,
@@ -230,11 +238,12 @@ api.post(
 
     await userRef.set(userProfile);
 
-    await setSessionCookie(res, buildSessionPayload(userRef.id, userProfile));
+    const sessionToken = await setSessionCookie(res, buildSessionPayload(userRef.id, userProfile));
 
     return res.status(201).json({
       message: "Account created successfully.",
       redirectTo: "/index.html",
+      sessionToken,
     });
   })
 );
@@ -270,11 +279,12 @@ api.post(
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    await setSessionCookie(res, buildSessionPayload(userRecord.id, userRecord));
+    const sessionToken = await setSessionCookie(res, buildSessionPayload(userRecord.id, userRecord));
 
     return res.json({
       message: "Welcome back!",
       redirectTo: "/index.html",
+      sessionToken,
     });
   })
 );
@@ -665,6 +675,7 @@ async function setSessionCookie(res, payload) {
     expiresIn: TOKEN_TTL_SECONDS,
   });
   res.cookie(SESSION_COOKIE_NAME, token, getCookieSettings());
+  return token;
 }
 
 function clearSessionCookie(res) {
