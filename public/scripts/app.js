@@ -2,6 +2,7 @@ import { clearSessionToken, applyAuthHeaders } from "./session.js";
 
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 const heroPrimaryCta = document.querySelector(".cta-row .solid-btn");
 const heroSecondaryCta = document.querySelector(".cta-row .outline-btn");
 
@@ -28,6 +29,7 @@ wireNavigation(loginBtn, "login.html");
 wireNavigation(signupBtn, "signup.html");
 wireNavigation(heroPrimaryCta, "signup.html");
 wireNavigation(heroSecondaryCta, "https://www.youtube.com/watch?v=ysz5S6PUM-U");
+wireLogout(logoutBtn);
 
 function setAuthState(isAuthenticated) {
 	const root = document.body;
@@ -47,6 +49,30 @@ function setAuthState(isAuthenticated) {
 			node.removeAttribute("aria-hidden");
 		} else {
 			node.setAttribute("aria-hidden", "true");
+		}
+	});
+}
+
+function wireLogout(button) {
+	if (!button) return;
+	const defaultLabel = button.textContent?.trim() || "Log out";
+	button.addEventListener("click", async () => {
+		button.disabled = true;
+		button.textContent = "Logging out...";
+		try {
+			const headers = applyAuthHeaders({ "Content-Type": "application/json" });
+			await fetch(`${API_BASE}/auth/logout`, {
+				method: "POST",
+				credentials: "include",
+				headers,
+			});
+		} catch (error) {
+			console.error("Failed to log out", error);
+		} finally {
+			clearSessionToken();
+			setAuthState(false);
+			button.disabled = false;
+			button.textContent = defaultLabel;
 		}
 	});
 }
