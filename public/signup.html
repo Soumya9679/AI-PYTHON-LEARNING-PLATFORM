@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="pulsepy-api-base" content="https://pulsepy-backend.onrender.com" />
     <title>Sign Up Page</title>
     <link rel="stylesheet" href="styles/signup.css" />
 </head>
@@ -14,6 +15,7 @@
             <input type="email" id="signupEmail" placeholder="Email" required />
             <input type="text" id="signupUsername" placeholder="Username" required />
             <input type="password" id="signupPassword" placeholder="Password" required />
+            <p class="field-hint">Use at least 8 characters, mixing letters and numbers and don't use spacial char.</p>
             <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required />
             <button type="submit">Create Account</button>
             <p class="form-status" id="signupStatus">Create your learner profile.</p>

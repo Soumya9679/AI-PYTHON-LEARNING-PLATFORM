@@ -1,6 +1,5 @@
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs";
-
-const NETLIFY_SITE = "team-coffee-code.netlify.app";
+import { fetchMentor } from "./apiClient.js";
 
 const challenge = {
   id: "loop-basics",
@@ -68,7 +67,6 @@ initializeEditor();
 setupResizeHandle();
 
 const pyodideRuntimePromise = loadPyRuntime();
-const mentorFunctionPromise = initializeFirebaseMentor();
 
 async function loadPyRuntime() {
   try {
@@ -288,13 +286,6 @@ hintButton?.addEventListener("click", async () => {
   mentorTone.textContent = "Status: contacting mentor";
 
   try {
-    const getHint = await mentorFunctionPromise;
-    if (!getHint) {
-      mentorCopy.textContent = "Mentor isn’t available right now. Compare your output manually for now.";
-      mentorTone.textContent = "Status: offline";
-      return;
-    }
-
     const payload = {
       code: getUserCode(),
       challengeTitle: challenge.title,
@@ -306,7 +297,7 @@ hintButton?.addEventListener("click", async () => {
       expectedOutput: challenge.expectedOutput,
     };
 
-    const response = await getHint(payload);
+    const response = await requestMentorHint(payload);
     mentorCopy.textContent = response?.hint || "Keep iterating—focus on matching the spacing and count.";
     mentorTone.textContent = `Tone: ${response?.tone ?? "spark"}`;
   } catch (error) {
@@ -318,41 +309,22 @@ hintButton?.addEventListener("click", async () => {
   }
 });
 
-async function initializeFirebaseMentor() {
-  let firebaseAppMod;
-  let firebaseFunctionsMod;
-
+async function requestMentorHint(payload) {
   try {
-    firebaseAppMod = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js");
-    firebaseFunctionsMod = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-functions.js");
+    const response = await fetchMentor("", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Mentor API unavailable");
+    }
+
+    return await response.json();
   } catch (error) {
-    console.warn("Firebase SDK failed to load", error);
-    return null;
+    console.error("Mentor request failed", error);
+    throw error;
   }
-
-  const configMeta = document.querySelector("meta[name='firebase-config']");
-  const firebaseConfig = configMeta?.content ? JSON.parse(configMeta.content) : null;
-
-  if (!firebaseConfig) {
-    console.warn("Firebase config meta tag missing");
-    return null;
-  }
-
-  const { initializeApp, getApps, getApp } = firebaseAppMod;
-  const { getFunctions, httpsCallable, connectFunctionsEmulator } = firebaseFunctionsMod;
-
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  const functionsSdk = getFunctions(app);
-
-  const hostName = window.location.hostname || "";
-  const shouldUseEmulator =
-    ["localhost", "127.0.0.1"].includes(hostName) ||
-    hostName === NETLIFY_SITE ||
-    hostName.endsWith(`--${NETLIFY_SITE}`);
-
-  if (shouldUseEmulator) {
-    connectFunctionsEmulator(functionsSdk, "localhost", 5001);
-  }
-
-  return (payload) => httpsCallable(functionsSdk, "mentorHint")(payload);
 }

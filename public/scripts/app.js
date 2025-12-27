@@ -1,4 +1,5 @@
 import { clearSessionToken, applyAuthHeaders } from "./session.js";
+import { fetchAuth } from "./apiClient.js";
 
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
@@ -6,15 +7,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 const heroPrimaryCta = document.querySelector(".cta-row .solid-btn");
 const heroSecondaryCta = document.querySelector(".cta-row .outline-btn");
 
-const PROJECT_ID = "ai-python-ide";
-const NETLIFY_SITE = "team-coffee-code.netlify.app";
-const hostName = window.location.hostname || "";
-const isStaticDevHost = /localhost:5500|127\.0\.0\.1:5500/.test(window.location.host);
-const isNetlifyDeployment =
-	hostName === NETLIFY_SITE ||
-	hostName.endsWith(`--${NETLIFY_SITE}`);
-const emulatorBase = `http://127.0.0.1:5001/${PROJECT_ID}/us-central1/api`;
-const API_BASE = (isStaticDevHost || isNetlifyDeployment) ? emulatorBase : "/api";
 const AUTHENTICATED_CLASS = "is-auth";
 const AUTH_SLOT_SELECTOR = "[data-auth-slot]";
 
@@ -61,7 +53,7 @@ function wireLogout(button) {
 		button.textContent = "Logging out...";
 		try {
 			const headers = applyAuthHeaders({ "Content-Type": "application/json" });
-			await fetch(`${API_BASE}/auth/logout`, {
+			await fetchAuth("/logout", {
 				method: "POST",
 				credentials: "include",
 				headers,
@@ -80,7 +72,7 @@ function wireLogout(button) {
 async function hydrateAuthState() {
 	try {
 		const headers = applyAuthHeaders({ Accept: "application/json" });
-		const response = await fetch(`${API_BASE}/auth/session`, {
+		const response = await fetchAuth("/session", {
 			method: "GET",
 			credentials: "include",
 			headers,

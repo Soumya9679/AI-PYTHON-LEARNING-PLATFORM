@@ -15,7 +15,7 @@ admin.initializeApp();
 const db = getFirestore();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || functions.config().gemini?.key;
-const GEMINI_MODEL = "gemini-1.5-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET || functions.config().auth?.jwt_secret || "";
 const SESSION_COOKIE_NAME = "pulsepy_session";
