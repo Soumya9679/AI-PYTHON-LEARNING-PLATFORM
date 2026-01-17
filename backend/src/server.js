@@ -1,40 +1,101 @@
 const path = require("path");
+const fs = require("fs");
 const { spawn } = require("child_process");
-require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const admin = require("firebase-admin");
+const fetch = global.fetch || ((...args) => import("node-fetch").then(({ default: fn }) => fn(...args)));
+require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
-admin.initializeApp();
+/**
+ * Firebase Admin initialization
+ */
+function initializeFirebaseAdmin() {
+  if (admin.apps.length) {
+    return;
+  }
 
-const db = getFirestore();
+  const serviceAccountFile = process.env.FIREBASE_SERVICE_ACCOUNT_FILE;
+  if (serviceAccountFile && fs.existsSync(serviceAccountFile)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(serviceAccountFile, "utf8"));
+      admin.initializeApp({ credential: admin.credential.cert(parsed) });
+      return;
+    } catch (error) {
+      console.warn("Failed to parse FIREBASE_SERVICE_ACCOUNT_FILE. Falling back.", error);
+    }
+  }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || functions.config().gemini?.key;
-const GEMINI_MODEL = "gemini-2.5-flash";
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (rawServiceAccount) {
+    try {
+      const serviceAccount = JSON.parse(rawServiceAccount);
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      return;
+    } catch (error) {
+      console.warn("Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back to default credentials.", error);
+    }
+  }
 
-const JWT_SECRET = process.env.AUTH_JWT_SECRET || functions.config().auth?.jwt_secret || "";
-const SESSION_COOKIE_NAME = "pulsepy_session";
-const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
-const isProduction = process.env.NODE_ENV === "production";
+  const inferredProjectId =
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.GCLOUD_PROJECT ||
+    process.env.GCP_PROJECT ||
+    process.env.GOOGLE_CLOUD_PROJECT;
 
-const NETLIFY_SITE = "team-coffee-code.netlify.app";
+  try {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: inferredProjectId,
+    });
+    return;
+  } catch (error) {
+    console.warn("Application default credentials unavailable. Attempting fallback project-only init.", error);
+  }
+
+  admin.initializeApp(
+    inferredProjectId
+      ? {
+          projectId: inferredProjectId,
+        }
+      : undefined
+  );
+}
+
+initializeFirebaseAdmin();
+
+const db = admin.firestore();
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const JWT_SECRET = process.env.AUTH_JWT_SECRET || "";
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "pulsepy_session";
+const TOKEN_TTL_SECONDS = Number(process.env.TOKEN_TTL_SECONDS || 60 * 60 * 24 * 7);
+const NODE_ENV = process.env.NODE_ENV || "development";
+const isProduction = NODE_ENV === "production";
+const NETLIFY_SITE = process.env.NETLIFY_SITE || "team-coffee-code.netlify.app";
+const PORT = process.env.PORT || 8080;
+
+const PYTHON_BINARIES = [process.env.PYTHON_BIN, "python3", "python"].filter(Boolean);
+const PYTHON_TIMEOUT_MS = Number(process.env.PYTHON_TIMEOUT_MS || 5000);
+const RESULT_START = "__PY_EVAL_START__";
+const RESULT_END = "__PY_EVAL_END__";
+const MAX_CODE_CHARACTERS = Number(process.env.MAX_CODE_CHARACTERS || 8000);
 
 const allowedOrigins = Array.from(
   new Set(
     [
       process.env.APP_BASE_URL,
-      functions.config().app?.origin,
+      ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : []),
       "http://localhost:5000",
       "http://127.0.0.1:5000",
       "http://localhost:5173",
       "http://localhost:5500",
       "http://127.0.0.1:5500",
-      "https://team-coffee-code.netlify.app",
+      `https://${NETLIFY_SITE}`,
     ].filter(Boolean)
   )
 );
@@ -42,12 +103,6 @@ const allowedOrigins = Array.from(
 const allowedOriginPatterns = [
   new RegExp(`^https://(?:[a-z0-9-]+--)?${NETLIFY_SITE.replace(/\./g, "\\.")}$`, "i"),
 ];
-
-const PYTHON_BINARIES = [process.env.PYTHON_BIN, "python3", "python"].filter(Boolean);
-const PYTHON_TIMEOUT_MS = 5000;
-const RESULT_START = "__PY_EVAL_START__";
-const RESULT_END = "__PY_EVAL_END__";
-const MAX_CODE_CHARACTERS = 8000;
 
 const challengeSuites = {
   1: {
@@ -157,9 +212,9 @@ const challengeSuites = {
   },
 };
 
-const api = express();
+const app = express();
 
-api.use(
+app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
@@ -171,19 +226,17 @@ api.use(
     credentials: true,
   })
 );
-api.use(express.json({ limit: "1mb" }));
-api.use(cookieParser());
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 
-api.post(
+app.get("/health", (req, res) => {
+  return res.json({ status: "ok" });
+});
+
+app.post(
   "/auth/signup",
   asyncHandler(async (req, res) => {
-    const {
-      fullName = "",
-      email = "",
-      username = "",
-      password = "",
-      confirmPassword = "",
-    } = req.body || {};
+    const { fullName = "", email = "", username = "", password = "", confirmPassword = "" } = req.body || {};
 
     const trimmedFullName = fullName.trim();
     const normalizedEmail = email.trim().toLowerCase();
@@ -232,8 +285,8 @@ api.post(
       username: username.trim(),
       usernameNormalized: normalizedUsername,
       passwordHash,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     await userRef.set(userProfile);
@@ -248,21 +301,17 @@ api.post(
   })
 );
 
-api.post(
+app.post(
   "/auth/login",
   asyncHandler(async (req, res) => {
     const { usernameOrEmail = "", password = "" } = req.body || {};
     const identifier = usernameOrEmail.trim().toLowerCase();
 
     if (!identifier || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username/email and password are both required." });
+      return res.status(400).json({ error: "Username/email and password are both required." });
     }
 
-    const lookupField = identifier.includes("@")
-      ? "emailNormalized"
-      : "usernameNormalized";
+    const lookupField = identifier.includes("@") ? "emailNormalized" : "usernameNormalized";
     const userRecord = await getUserByField(lookupField, identifier);
 
     if (!userRecord) {
@@ -275,8 +324,8 @@ api.post(
     }
 
     await userRecord.ref.update({
-      lastLoginAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     const sessionToken = await setSessionCookie(res, buildSessionPayload(userRecord.id, userRecord));
@@ -289,21 +338,14 @@ api.post(
   })
 );
 
-api.post(
-  "/auth/logout",
-  (req, res) => {
-    clearSessionCookie(res);
-    return res.status(204).send();
-  }
-);
+app.post("/auth/logout", (req, res) => {
+  clearSessionCookie(res);
+  return res.status(204).send();
+});
 
-api.get(
-  "/auth/session",
-  authenticateRequest,
-  (req, res) => res.json({ user: req.user })
-);
+app.get("/auth/session", authenticateRequest, (req, res) => res.json({ user: req.user }));
 
-api.post(
+app.post(
   "/challenges/:challengeId/submit",
   asyncHandler(async (req, res) => {
     const challengeId = req.params.challengeId;
@@ -329,7 +371,7 @@ api.post(
         ...evaluation,
       });
     } catch (error) {
-      functions.logger.error("Challenge evaluation failed", error);
+      console.error("Challenge evaluation failed", error);
       return res.status(error.statusCode || 500).json({
         error: error.message || "Unable to evaluate code right now.",
       });
@@ -337,100 +379,93 @@ api.post(
   })
 );
 
-api.use((err, req, res, next) => {
+app.post(
+  "/mentorHint",
+  asyncHandler(async (req, res) => {
+    const {
+      code = "",
+      challengeTitle = "Untitled challenge",
+      description = "",
+      rubric = "",
+      mentorInstructions = "Offer one short hint.",
+      stdout = "",
+      stderr = "",
+      expectedOutput = "",
+    } = req.body || {};
+
+    if (!code.trim()) {
+      return res.status(200).json(fallbackResponse("Drop some code so I can help!", "spark"));
+    }
+
+    if (!GEMINI_API_KEY) {
+      return res
+        .status(200)
+        .json(fallbackResponse("Mentor is offline. Focus on matching the expected output first!", "info"));
+    }
+
+    try {
+      const prompt = buildPrompt({
+        challengeTitle,
+        description,
+        rubric,
+        mentorInstructions,
+        code,
+        stdout,
+        stderr,
+        expectedOutput,
+      });
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: prompt }],
+              },
+            ],
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Gemini error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const rawText = result?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join(" ").trim();
+      const sanitized = sanitizeHint(rawText);
+
+      return res.json({
+        hint: sanitized || fallbackCopy(stdout, stderr),
+        tone: stderr ? "calm" : "spark",
+        model: `Gemini (${GEMINI_MODEL})`,
+      });
+    } catch (error) {
+      console.error("mentorHint failure", error);
+      return res.status(200).json(
+        fallbackResponse("Mentor had a hiccup. Check your loop length or print spacing while we reconnect.", "calm")
+      );
+    }
+  })
+);
+
+app.use((err, req, res, next) => {
   if (err.message === "Origin not allowed") {
     return res.status(403).json({ error: "This origin is not allowed." });
   }
-  functions.logger.error("API error", err);
+  console.error("API error", err);
   return res.status(err.statusCode || 500).json({ error: err.message || "Unexpected server error." });
 });
 
-exports.api = functions.https.onRequest(api);
-
-exports.mentorHint = functions.https.onCall(async (data) => {
-  const {
-    code = "",
-    challengeTitle = "Untitled challenge",
-    description = "",
-    rubric = "",
-    mentorInstructions = "Offer one short hint.",
-    stdout = "",
-    stderr = "",
-    expectedOutput = "",
-  } = data || {};
-
-  if (!code.trim()) {
-    return fallbackResponse("Drop some code so I can help!", "spark");
-  }
-
-  if (!GEMINI_API_KEY) {
-    return fallbackResponse("Mentor is offline. Focus on matching the expected output first!", "info");
-  }
-
-  try {
-    const prompt = buildPrompt({
-      challengeTitle,
-      description,
-      rubric,
-      mentorInstructions,
-      code,
-      stdout,
-      stderr,
-      expectedOutput,
-    });
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Gemini error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const rawText = result?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join(" ")
-      .trim();
-
-    const sanitized = sanitizeHint(rawText);
-
-    return {
-      hint: sanitized || fallbackCopy(stdout, stderr),
-      tone: stderr ? "calm" : "spark",
-      model: `Gemini (${GEMINI_MODEL})`,
-    };
-  } catch (error) {
-    console.error("mentorHint failure", error);
-    return fallbackResponse(
-      "Mentor had a hiccup. Check your loop length or print spacing while we reconnect.",
-      "calm"
-    );
-  }
+app.listen(PORT, () => {
+  console.log(`PulsePy backend listening on port ${PORT}`);
 });
 
-function buildPrompt({
-  challengeTitle,
-  description,
-  rubric,
-  mentorInstructions,
-  code,
-  stdout,
-  stderr,
-  expectedOutput,
-}) {
+function buildPrompt({ challengeTitle, description, rubric, mentorInstructions, code, stdout, stderr, expectedOutput }) {
   return `You are Gemini acting as a patient Python mentor. ${mentorInstructions}
 
 Challenge: ${challengeTitle}
@@ -481,11 +516,7 @@ async function evaluatePythonSubmission(code, challenge) {
   const tests = Array.isArray(payload?.tests) ? payload.tests : [];
   const missingEntryPoint = payload?.missingEntryPoint || null;
   const setupError = payload?.setupError || null;
-  const passed =
-    !missingEntryPoint &&
-    !setupError &&
-    tests.length > 0 &&
-    tests.every((test) => Boolean(test.passed));
+  const passed = !missingEntryPoint && !setupError && tests.length > 0 && tests.every((test) => Boolean(test.passed));
 
   return {
     passed,
@@ -568,8 +599,7 @@ async function runWithPython(script) {
     }
   }
 
-  const runtimeError =
-    lastError || new Error("Python runtime is not available in the execution environment.");
+  const runtimeError = lastError || new Error("Python runtime is not available in the execution environment.");
   runtimeError.statusCode = 500;
   throw runtimeError;
 }
@@ -597,9 +627,7 @@ function executePython(binary, script) {
     proc.on("close", (code, signal) => {
       clearTimeout(timeout);
       if (signal === "SIGKILL") {
-        const timeoutError = new Error(
-          "Code execution timed out. Ensure your solution finishes quickly."
-        );
+        const timeoutError = new Error("Code execution timed out. Ensure your solution finishes quickly.");
         timeoutError.statusCode = 408;
         return reject(timeoutError);
       }
@@ -630,9 +658,7 @@ function parseRunnerOutput(stdoutText = "") {
 
   const jsonSegment = stdoutText.substring(startIndex + RESULT_START.length, endIndex).trim();
   const payload = jsonSegment ? JSON.parse(jsonSegment) : {};
-  const strippedStdout = `${stdoutText.substring(0, startIndex)}${stdoutText.substring(
-    endIndex + RESULT_END.length
-  )}`.trim();
+  const strippedStdout = `${stdoutText.substring(0, startIndex)}${stdoutText.substring(endIndex + RESULT_END.length)}`.trim();
 
   return { payload, strippedStdout };
 }
@@ -698,8 +724,7 @@ function getCookieSettings(isForClearing = false) {
 
 function authenticateRequest(req, res, next) {
   try {
-    const token =
-      req.cookies?.[SESSION_COOKIE_NAME] || extractBearerToken(req.headers.authorization);
+    const token = req.cookies?.[SESSION_COOKIE_NAME] || extractBearerToken(req.headers.authorization);
     if (!token) {
       return res.status(401).json({ error: "Not authenticated." });
     }
