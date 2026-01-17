@@ -1,4 +1,4 @@
-# PulsePy — AI Python IDE Come Learning Platform
+# PulsePy — AI Python IDE and Learning Platform
 
 A playful, student‑friendly Python learning platform with a browser IDE, challenge grading, and Gemini‑powered mentor hints.
 
